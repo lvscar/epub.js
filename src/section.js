@@ -125,7 +125,7 @@ class Section {
 		var section = this;
 		var matches = [];
 		var query = _query.toLowerCase();
-		var find = function(node){
+		var find = function(node,nodePre,nodePost){
 			var text = node.textContent.toLowerCase();
 			var range = section.document.createRange();
 			var cfi;
@@ -164,14 +164,61 @@ class Section {
 
 				last = pos;
 			}
+			if ( nodePre != null && node != null){
+				//try to find result between previous and subsequent nodes 
+				//the test case: finding "I beg" or "beg your pardon" or "i beg your" in following book section.
+				//<p>"Oh, I <i>beg</i> your pardon!" </p>  (from test/fixtures/alice/OPS/chapter_010.xhtml)
+				var textWithCase = nodePre.textContent + node.textContent + (nodePost != null ?  nodePost.textContent : "" );
+				text = textWithCase.toLowerCase() ;
+				pos = text.indexOf(query);
+				if (pos != -1){ 
+					range = section.document.createRange();
+					if (pos < nodePre.textContent.length && 
+						(pos+query.length) > nodePre.textContent.length &&
+						(nodePre.textContent.toLowerCase() + node.textContent.toLowerCase()).indexOf(query) != -1
+					){
+						range.setStart(nodePre,pos);
+						range.setEnd(node, query.length - (nodePre.textContent.length - pos) );
+						cfi = section.cfiFromRange(range);
+						if (text.length < limit) {
+							excerpt = nodePre.textContent + node.textContent ;
+						} else {
+							excerpt = (nodePre.textContent + node.textContent).substring(pos - limit/2, pos + limit/2);
+							excerpt = "..." + excerpt + "...";
+						}
+						matches.push({
+							cfi: cfi,
+							excerpt: excerpt
+						});
+					}else if(pos <= nodePre.textContent.length 
+							&& ((pos+query.length) >= (nodePre.textContent + node.textContent).length)
+							&&  (nodePre.textContent.toLowerCase() + node.textContent.toLowerCase()).indexOf(query) == -1
+							&& 	(node.textContent.toLowerCase() + nodePost.textContent.toLowerCase()).indexOf(query) == -1
+					){
+						range.setStart(nodePre,pos);
+						range.setEnd(nodePost, query.length - ( node.textContent.length + (nodePre.textContent.length - pos) ));
+						cfi = section.cfiFromRange(range);
+						if (text.length < limit) {
+							excerpt = textWithCase ;
+						} else {
+							excerpt = textWithCase.substring(pos - limit/2, pos + limit/2);
+							excerpt = "..." + excerpt + "...";
+						}
+						matches.push({
+							cfi: cfi,
+							excerpt: excerpt
+						});
+					}	
+				}
+			}
 		};
 
-		sprint(section.document, function(node) {
-			find(node);
+		sprint(section.document, function(node,nodePre,nodePost) {
+			find(node,nodePre,nodePost);
 		});
 
 		return matches;
-	};
+	}
 
 	/**
 	* Reconciles the current chapters layout properies with

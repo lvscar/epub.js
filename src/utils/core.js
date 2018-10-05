@@ -593,9 +593,16 @@ export function sprint(root, func) {
  */
 export function treeWalker(root, func, filter) {
 	var treeWalker = document.createTreeWalker(root, filter, null, false);
-	let node;
-	while ((node = treeWalker.nextNode())) {
-		func(node);
+	let nodePre, node, nodePost, tmp;
+	while ((nodePost = treeWalker.nextNode())) {
+		if (node == null){
+			func(nodePost);
+		}else{
+			func(node,nodePre,nodePost);
+		}
+		tmp = node;
+		node = nodePost;
+		nodePre = tmp;
 	}
 }
 
