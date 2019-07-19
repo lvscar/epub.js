@@ -611,8 +611,13 @@ class IframeView {
 		}
 
 		let m = new Underline(range, className, data, attributes);
-		let h = this.pane.addMark(m);
-
+		try{
+			h = this.pane.addMark(m);
+		}catch (e) {
+			console.warn("add Mark failed");
+			console.warn(e);
+			return ;
+		}
 		this.underlines[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
 
 		h.element.setAttribute("ref", className);
