@@ -877,7 +877,12 @@ class EpubCFI {
 
 		if(!ignoreClass && typeof doc.evaluate != "undefined") {
 			xpath = this.stepsToXpath(steps);
-			container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+			try{
+				container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+			}catch (e){
+				console.warn(e);
+				return null;
+			}
 		} else if(ignoreClass) {
 			container = this.walkToNode(steps, doc, ignoreClass);
 		} else {
