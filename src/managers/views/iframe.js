@@ -579,8 +579,13 @@ class IframeView {
 		}
 
 		let m = new Highlight(range, className, data, attributes);
-		let h = this.pane.addMark(m);
-
+		let h;
+		try{
+			h = this.pane.addMark(m);
+		}catch (e){
+			console.warn(e);
+			return null;
+		}
 		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
 
 		h.element.setAttribute("ref", className);
