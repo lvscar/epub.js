@@ -154,10 +154,13 @@ class Section {
 						excerpt = node.textContent.substring(pos - limit/2, pos + limit/2);
 						excerpt = "..." + excerpt + "...";
 					}
-
-					// Add the CFI to the matches list
+					let tagName = node.tagName ;
+					if (!node.tagName){
+						tagName = node.parentElement.tagName;
+					}
 					matches.push({
 						cfi: cfi,
+						tagName: tagName , 
 						excerpt: excerpt
 					});
 				}
@@ -219,8 +222,13 @@ class Section {
 						excerpt = excerpt.substring(pos - excerptLimit/2, pos + excerptLimit/2);
 						excerpt = "..." + excerpt + "...";
 					}
+					let tagName = startNode.tagName;
+					if (!startNode.tagName){
+						tagName = startNode.parentElement.tagName;
+					}
 					matches.push({
 						cfi: cfi,
+						tagName: tagName,
 						excerpt: excerpt
 					});
 				}

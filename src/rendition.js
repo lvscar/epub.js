@@ -16,6 +16,7 @@ import IframeView from "./managers/views/iframe";
 // Default View Managers
 import DefaultViewManager from "./managers/default/index";
 import ContinuousViewManager from "./managers/continuous/index";
+import { isArray } from "util";
 
 /**
  * Displays an Epub as a series of Views for each Section.
@@ -304,7 +305,6 @@ class Rendition {
 		if (!this.book) {
 			return;
 		}
-		var isCfiString = this.epubcfi.isCfiString(target);
 		var displaying = new defer();
 		var displayed = displaying.promise;
 		var section;
@@ -317,7 +317,11 @@ class Rendition {
 			target = this.book.locations.cfiFromPercentage(parseFloat(target));
 		}
 
-		section = this.book.spine.get(target);
+		if (isArray(target)){
+			section = this.book.spine.get(target[0]);
+		}else{
+			section = this.book.spine.get(target);
+		}
 
 		if(!section){
 			displaying.reject(new Error("No Section Found"));

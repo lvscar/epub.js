@@ -644,6 +644,21 @@ class Contents {
 					position = el.getBoundingClientRect();
 				}
 			}
+		} else if (Array.isArray(target) && target.length > 2) {
+			let tagName = target[1];
+			let excerpt = target[2];
+			let doc = this.document ;
+			let res = [...doc.querySelectorAll(tagName)];
+			res = res.filter( (n)=>{
+				let ih = n.innerText;
+				if (ih.includes(excerpt)){
+					return true;
+				}else{
+					return false;
+				}
+			})
+			let el = res[0];
+			position = el.getBoundingClientRect();
 		}
 
 		if (position) {

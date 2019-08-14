@@ -5,6 +5,7 @@ import Queue from "../../utils/queue";
 import Stage from "../helpers/stage";
 import Views from "../helpers/views";
 import { EVENTS } from "../../utils/constants";
+import { isArray } from "util";
 
 class DefaultViewManager {
 	constructor(options) {
@@ -238,7 +239,7 @@ class DefaultViewManager {
 		var displayed = displaying.promise;
 
 		// Check if moving to target is needed
-		if (target === section.href || isNumber(target)) {
+		if (target === section.href || isNumber(target) ) {
 			target = undefined;
 		}
 
@@ -324,11 +325,14 @@ class DefaultViewManager {
 		} else {
 			distX = Math.floor(offset.left / this.layout.delta) * this.layout.delta;
 
-			if (distX + this.layout.delta > this.container.scrollWidth) {
-				distX = this.container.scrollWidth - this.layout.delta;
-			}
+			// if (distX + this.layout.delta > this.container.scrollWidth) {
+			// 	distX = this.container.scrollWidth - this.layout.delta;
+			// }
 		}
 		this.scrollTo(distX, distY, true);
+		setTimeout(()=>{
+			this.scrollTo(distX, distY, true);
+		},500);
 	}
 
 	add(section){
