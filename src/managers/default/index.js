@@ -261,7 +261,6 @@ class DefaultViewManager {
 				let offset = visible.locationOf(target);
 				this.moveTo(offset);
 			}
-
 			displaying.resolve();
 			return displayed;
 		}

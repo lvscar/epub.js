@@ -57,7 +57,11 @@ class Annotations {
 
 		views.forEach( (view) => {
 			if (annotation.sectionIndex === view.index) {
-				annotation.attach(view);
+				try{
+					annotation.attach(view);
+				}catch (e){
+					console.warn(e);
+				}
 			}
 		});
 

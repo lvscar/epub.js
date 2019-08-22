@@ -616,18 +616,21 @@ class IframeView {
 		}
 
 		let m = new Underline(range, className, data, attributes);
-		try{
+		let h;
+		try {
 			h = this.pane.addMark(m);
-		}catch (e) {
+		} catch (e) {
 			console.warn("add Mark failed");
 			console.warn(e);
-			return ;
+			return;
 		}
 		this.underlines[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
 
-		h.element.setAttribute("ref", className);
-		h.element.addEventListener("click", emitter);
-		h.element.addEventListener("touchstart", emitter);
+		if (h){
+			h.element.setAttribute("ref", className);
+			h.element.addEventListener("click", emitter);
+			h.element.addEventListener("touchstart", emitter);
+		}
 
 		if (cb) {
 			h.element.addEventListener("click", cb);

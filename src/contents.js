@@ -646,6 +646,9 @@ class Contents {
 			}
 		} else if (Array.isArray(target) && target.length > 2) {
 			let tagName = target[1];
+			if (tagName == "*"){
+				tagName = "body *";
+			}
 			let excerpt = target[2];
 			let doc = this.document ;
 			let res = [...doc.querySelectorAll(tagName)];
@@ -657,8 +660,22 @@ class Contents {
 					return false;
 				}
 			})
-			let el = res[0];
-			position = el.getBoundingClientRect();
+			if (res.length > 0) {
+				let el = res[0];
+				Array.from(el.querySelectorAll("span.lp-search-result")).forEach((n) => {
+					n.parentNode.insertBefore(doc.createTextNode(n.innerText), n);
+					n.parentNode.removeChild(n);
+				});
+				let hText = el.innerHTML;
+				hText = hText.replace(new RegExp(excerpt.split(" ").join(".*"), "g"),(match)=>`${match}<span class="lp-search-result"></span>`);
+				el.innerHTML = hText;
+				let resWrapper = el.querySelector("span.lp-search-result");
+				if (resWrapper){
+					position = resWrapper.getBoundingClientRect();
+				}else{
+					position = el.getBoundingClientRect();
+				}
+			}
 		}
 
 		if (position) {
