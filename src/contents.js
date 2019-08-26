@@ -572,6 +572,34 @@ class Contents {
 
 		if(!this.document) return targetPos;
 
+
+		if (Array.isArray(target) && target.length > 2 && target[3].length > 0) {
+			let tagName = target[1];
+			if (tagName == "*"){
+				return ;
+			}
+			let searchKeyWord = target[3];
+			let doc = this.document ;
+			let res = [...doc.querySelectorAll(tagName)];
+			res = res.filter( (n)=>{
+				let ih = n.innerText;
+				if (ih.search( new RegExp(searchKeyWord.split(" ").join(".*?"), "gi" )) != -1) {
+					return true;
+				}else{
+					return false;
+				}
+			})
+			res.forEach( (el)=>{
+				Array.from(el.querySelectorAll("span.lp-search-keyword")).forEach((n) => {
+					n.parentNode.insertBefore(doc.createTextNode(n.innerText), n);
+					n.parentNode.removeChild(n);
+				});
+				let hText = el.innerHTML;
+				hText = hText.replace(new RegExp(searchKeyWord.split(" ").join(".*?"), "gi"),(match)=>`<span class="lp-search-keyword">${match}</span>`);
+				el.innerHTML = hText;
+			});
+		}
+
 		if(this.epubcfi.isCfiString(target)) {
 			let range = new EpubCFI(target).toRange(this.document, ignoreClass);
 
