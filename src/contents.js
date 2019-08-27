@@ -580,7 +580,11 @@ class Contents {
 			}
 
 			let excerpt = target[2]; // excerpt don't need case insensitive search.
-			let excerptReg = new RegExp(excerpt);
+			function escapeRegExp(str) {
+				str = str.replace(/^[,.]|[,.]$/g, '')
+				return str.replace(/[.*+?^${}()|[\]\\]/g, '').trim(); // $& means the whole matched string
+			}
+			let excerptReg = escapeRegExp(excerpt);
 			let res = [];
 			let useInnerText = false;
 			res = [...doc.querySelectorAll(tagName)].filter( (n)=>{
@@ -590,7 +594,13 @@ class Contents {
 				return nodesContainRes.length > 0 ? true : false;
 			});
 			if (res.length < 1){
-				excerptReg = new RegExp(excerpt.split(" ").join(".+?"), "" )
+				
+				excerptReg = excerptReg.replace(/\W+/g," ");
+				let wordList = excerptReg.split(" ");
+				let regList = wordList.slice(0,-1).map((x)=> `${x}[^${x}]`);
+				regList.push(wordList.slice(-1));
+				excerptReg = new RegExp( regList.join("+?") );
+
 				res = [...doc.querySelectorAll(tagName)].filter( (n)=>{
 					let nodesContainRes = Array.from(n.childNodes)
 					.filter( (n) => n.nodeType == 3 )
@@ -600,7 +610,6 @@ class Contents {
 			}
 			if (res.length < 1){
 				useInnerText = true;
-				excerptReg = new RegExp(excerpt.split(" ").join(".+?"), "" )
 				res = [...doc.querySelectorAll(tagName)].filter( (n)=>{
 					return n.innerText.search(excerptReg) != -1;
 				});
@@ -618,9 +627,9 @@ class Contents {
 			}
 
 
-			if (target.length > 2 && target[3].length > 0){ // target[3] is user input keyword , use case insesitive search.
-				let userInput = target[3];  
-				let userInputReg = new RegExp(userInput,"i")
+			if (target.length > 2 && target[3] && target[3].length > 0){ // target[3] is user input keyword , use case insesitive search.
+				let userInput = escapeRegExp(target[3]);  
+				let userInputReg = new RegExp(userInput,"ig")
 				let res = [...doc.querySelectorAll("span.lp-excerpt-mark")];
 				res = res.filter( (n)=>{
 					let nodesContainRes = Array.from(n.childNodes)
