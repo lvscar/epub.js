@@ -572,36 +572,84 @@ class Contents {
 
 		if(!this.document) return targetPos;
 
-
-		if (Array.isArray(target) && target.length > 2 && target[3].length > 0) {
+		if (Array.isArray(target) ) {
+			let doc = this.document ;
 			let tagName = target[1];
 			if (tagName == "*"){
-				return ;
+				tagName = "body *";
 			}
-			let searchKeyWord = target[3];
-			let doc = this.document ;
-			let res = [...doc.querySelectorAll(tagName)];
-			res = res.filter( (n)=>{
-				let ih = n.innerText;
-				if (ih.search( new RegExp(searchKeyWord.split(" ").join(".*?"), "gi" )) != -1) {
-					return true;
-				}else{
-					return false;
-				}
-			})
-			res.forEach( (el)=>{
-				Array.from(el.querySelectorAll("span.lp-search-keyword")).forEach((n) => {
-					n.parentNode.insertBefore(doc.createTextNode(n.innerText), n);
-					n.parentNode.removeChild(n);
-				});
-				let hText = el.innerHTML;
-				hText = hText.replace(new RegExp(searchKeyWord.split(" ").join(".*?"), "gi"),(match)=>`<span class="lp-search-keyword">${match}</span>`);
-				el.innerHTML = hText;
+
+			let excerpt = target[2]; // excerpt don't need case insensitive search.
+			let excerptReg = new RegExp(excerpt);
+			let res = [];
+			let useInnerText = false;
+			res = [...doc.querySelectorAll(tagName)].filter( (n)=>{
+				let nodesContainRes = Array.from(n.childNodes)
+				.filter( (n) => n.nodeType == 3 )
+				.filter( (n)=> n.data.search(  excerptReg ) != -1   );
+				return nodesContainRes.length > 0 ? true : false;
 			});
+			if (res.length < 1){
+				excerptReg = new RegExp(excerpt.split(" ").join(".+?"), "" )
+				res = [...doc.querySelectorAll(tagName)].filter( (n)=>{
+					let nodesContainRes = Array.from(n.childNodes)
+					.filter( (n) => n.nodeType == 3 )
+					.filter( (n)=> n.data.search(  excerptReg ) != -1   );
+					return nodesContainRes.length > 0 ? true : false;
+				});
+			}
+			if (res.length < 1){
+				useInnerText = true;
+				excerptReg = new RegExp(excerpt.split(" ").join(".+?"), "" )
+				res = [...doc.querySelectorAll(tagName)].filter( (n)=>{
+					return n.innerText.search(excerptReg) != -1;
+				});
+			}
+			res = res.filter( (n) => (!n.classList) || (n.classList && !n.classList.contains('lp-excerpt-mark')) );
+			if (res.length > 0){
+				let el = res[ res.length-1];
+				if (useInnerText){
+					el.innerHTML = el.innerText.replace(excerptReg,(match)=>`<span class="lp-excerpt-mark">${match}</span>`);
+				}else{
+					el.innerHTML = el.innerHTML.replace(excerptReg,(match)=>`<span class="lp-excerpt-mark">${match}</span>`);
+				}
+			} else{
+				console.warn(`Attaching excerpt mark failed for ${excerpt}`);
+			}
+
+
+			if (target.length > 2 && target[3].length > 0){ // target[3] is user input keyword , use case insesitive search.
+				let userInput = target[3];  
+				let userInputReg = new RegExp(userInput,"i")
+				let res = [...doc.querySelectorAll("span.lp-excerpt-mark")];
+				res = res.filter( (n)=>{
+					let nodesContainRes = Array.from(n.childNodes)
+					.filter( (n) => n.nodeType == 3 )
+					.filter( (n)=> n.data.search(  userInputReg ) != -1   );
+					if (nodesContainRes.length > 0){
+						return true;
+					}else{
+						return false;
+					}
+				})
+				.filter( (n) => (!n.classList) || (n.classList && !n.classList.contains('lp-search-keyword')) );
+				res.forEach( (el)=>{
+					let hText = el.innerHTML;
+					hText = hText.replace(userInputReg,(match)=>`<span class="lp-search-keyword">${match}</span>`);
+					el.innerHTML = hText;
+				});
+
+				doc.querySelector("span.lp-excerpt-mark").classList.add("no-highlight");
+			}
 		}
 
 		if(this.epubcfi.isCfiString(target)) {
-			let range = new EpubCFI(target).toRange(this.document, ignoreClass);
+			let range ;
+			try{
+				range = new EpubCFI(target).toRange(this.document, ignoreClass);
+			}catch (e){
+				console.warn(e);
+			}
 
 			if(range) {
 				try {
@@ -672,37 +720,10 @@ class Contents {
 					position = el.getBoundingClientRect();
 				}
 			}
-		} else if (Array.isArray(target) && target.length > 2) {
-			let tagName = target[1];
-			if (tagName == "*"){
-				tagName = "body *";
-			}
-			let excerpt = target[2];
-			let doc = this.document ;
-			let res = [...doc.querySelectorAll(tagName)];
-			res = res.filter( (n)=>{
-				let ih = n.innerText;
-				if (ih.includes(excerpt)){
-					return true;
-				}else{
-					return false;
-				}
-			})
+		} else if (Array.isArray(target) ) {
+			let res = [...this.document.querySelectorAll(".lp-excerpt-mark")];
 			if (res.length > 0) {
-				let el = res[0];
-				Array.from(el.querySelectorAll("span.lp-search-result")).forEach((n) => {
-					n.parentNode.insertBefore(doc.createTextNode(n.innerText), n);
-					n.parentNode.removeChild(n);
-				});
-				let hText = el.innerHTML;
-				hText = hText.replace(new RegExp(excerpt.split(" ").join(".*"), "g"),(match)=>`${match}<span class="lp-search-result"></span>`);
-				el.innerHTML = hText;
-				let resWrapper = el.querySelector("span.lp-search-result");
-				if (resWrapper){
-					position = resWrapper.getBoundingClientRect();
-				}else{
-					position = el.getBoundingClientRect();
-				}
+				position = res[0].getBoundingClientRect();
 			}
 		}
 
