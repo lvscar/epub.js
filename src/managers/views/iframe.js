@@ -348,6 +348,10 @@ class IframeView {
 
 
 	load(contents) {
+		if (typeof contents == "string"){ // hide error img
+			let regex = /<img /gi;
+			contents = contents.replace(regex, "<img onerror=\"this.style.display='none'\"  ");
+		}
 		var loading = new defer();
 		var loaded = loading.promise;
 
