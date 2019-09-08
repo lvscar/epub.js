@@ -522,6 +522,12 @@ class DefaultViewManager {
 
 		}
 
+		try{
+			if (prev && prev.document.body.innerText.trim().length < 1){
+				prev = null ;
+			}
+		}catch (err){}
+
 		if(prev) {
 			this.clear();
 
